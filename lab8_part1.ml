@@ -190,9 +190,41 @@ INTERVAL signature. (Much of the implementation can be copied from
 MakeInterval above.) **Don't forget to specify the module type.**
 ......................................................................*)
 
-module MakeSafeInterval (Endpoint : ORDERED_TYPE) =
+module MakeSafeInterval (Endpoint : ORDERED_TYPE) : INTERVAL =
   struct
-    (* ... complete the module implementation here ... *)
+    type endpoint = Endpoint.t
+    type interval =
+      | Interval of endpoint * endpoint
+      | Empty
+
+    (* create low high -- Returns a new interval covering `low` to
+        `high` inclusive. If `low` is greater than `high`, then the
+        interval is empty. *)
+    let create (low : Endpoint.t) (high : Endpoint.t) : interval =
+      if Endpoint.compare low high = 1 then Empty else Interval (low, high)
+
+    (* is_empty intvl -- Returns true if and only if `intvl` is
+        empty *)
+    let is_empty (intvl : interval) : bool =
+        intvl = Empty 
+
+    (* contains intvl x -- Returns true if and only if the value `x`
+        is contained within `intvl` *)
+    let contains (intvl : interval) (x : Endpoint.t) : bool =
+      match intvl with 
+      | Empty -> false 
+      | Interval (a, b) -> Endpoint.compare x a >= 0 && Endpoint.compare x b <= 0 
+
+    (* intersect intvl1 intvl2 -- Returns the intersection of `intvl1`
+        and `intvl2` *)
+    let intersect (intvl1 : interval) (intvl2 : interval) : interval =
+      match intvl1, intvl2 with 
+      | _, Empty 
+      | Empty, _ -> Empty 
+      | Interval (a, b), Interval (c, d) -> 
+      let x = if Endpoint.compare a c >= 0 then a else c in
+      let y = if Endpoint.compare b d <= 0 then b else d in
+      Interval (x, y)
   end ;;
 
 (* We have successfully made our returned module abstract, but believe
@@ -205,7 +237,11 @@ Exercise 2C: Create an IntSafeInterval module using the new
 MakeSafeInterval functor.
 ......................................................................*)
 
-module IntSafeInterval = struct end ;;
+module IntSafeInterval = MakeSafeInterval  
+(struct 
+type t = int 
+let compare = compare
+  end) ;;
 
 (* Now, try evaluating the following expression in the REPL:
 
