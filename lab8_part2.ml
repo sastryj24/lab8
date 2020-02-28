@@ -167,7 +167,7 @@ module IntStringStack = MakeStack
   type t = (int * string)
   let serialize (x: t) : string = 
     match x with 
-    | (a, b) -> "(" ^ string_of_int a ^ ", " ^ b ^ "):"
+    | (a, b) -> "(" ^ string_of_int a ^ ",'" ^ b ^ "')"
   end) ;;
 
 
